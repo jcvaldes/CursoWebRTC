@@ -8,6 +8,23 @@
     <title>Document</title>
 </head>
 <body>
-    Hello World
+    <video autoplay></video>
+    <script>
+        debugger
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        var constraints = {audio: true, video: true};
+        var videoArea = document.querySelector("video");
+        navigator.getUserMedia(constraints, onSuccess, onError);
+
+        function onSuccess(stream) {
+            console.log("Success! We have a stream!");
+            videoArea.src = window.URL.createObjectURL(stream);
+            videoArea.play();
+        }
+
+        function onError(error) {
+          console.log("Error with getUserMedia: ", error);
+        }
+    </script>
 </body>
 </html>
