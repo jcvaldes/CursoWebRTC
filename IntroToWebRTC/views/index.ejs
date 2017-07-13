@@ -12,10 +12,24 @@
     <div>
         Video: <select name="camera" id="camera"></select>
     </div>
-    <video autoplay></video>
+    <p>
+        <button id="takeProfilePicture" type="button" autofocus="true">
+            Create Profile Picture
+        </button>
+    </p>
+    <video id="videoTag" autoplay></video>
+    <canvas id="profilePicCanvas" style="display: none"></canvas>
+    <div>
+        <img src="" alt="" id="profilePictureOutput"></div>
 <script>
   var videoArea = document.querySelector("video");
   var videoSelect = document.querySelector('#camera');
+  var profilePicCanvas = document.querySelector('#profilePicCanvas');
+  var profilePictureOutput = document.querySelector('#profilePictureOutput');
+  var takePicButton = document.querySelector('#takeProfilePicture');
+  var videoTag = document.querySelector('#videoTag');
+
+
   //MediaStreamTrack.getSources(getCameras);
   navigator.mediaDevices.enumerateDevices().then(function(sourceInfos){
     for(var i = 0; i !== sourceInfos.length; ++i) {
@@ -37,10 +51,10 @@
       audio: false,
       video: {
         mandatory: {
-          minWidth: 640,
-          maxWidth: 640,
-          minHeight: 360,
-          maxHeight: 480
+          minWidth: 240,
+          maxWidth: 240,
+          minHeight: 240,
+          maxHeight: 240
         },
         optional: [{
           sourceId: videoSource
