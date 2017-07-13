@@ -6,7 +6,7 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
     <div>
@@ -24,19 +24,17 @@
       option.value = sourceInfo.id;
       if( sourceInfo.kind === 'videoinput') {
         option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+      //  option.value = sourceInfo.deviceId;
         videoSelect.appendChild(option);
       }
     }
   });
-  videoSelect.onchange = startStream();
-
-  startStream();
 
   function startStream() {
     navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     var videoSource = videoSelect.value;
     var constraints = {
-      audio: true,
+      audio: false,
       video: {
         mandatory: {
           minWidth: 640,
@@ -63,6 +61,10 @@
   function onError(error) {
     console.log("Error with getUserMedia: ", error);
   }
+
+  videoSelect.onchange = startStream;
+  startStream();
+
 </script>
 </body>
 </html>
