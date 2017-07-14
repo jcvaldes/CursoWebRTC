@@ -9,18 +9,19 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <div>
-        Video: <select name="camera" id="camera"></select>
-    </div>
-    <p>
-        <button id="takeProfilePicture" type="button" autofocus="true">
-            Create Profile Picture
-        </button>
-    </p>
-    <video id="videoTag" autoplay></video>
-    <canvas id="profilePicCanvas" style="display: none"></canvas>
-    <div>
-        <img src="" alt="" id="profilePictureOutput"></div>
+<div>
+    Video: <select name="camera" id="camera"></select>
+</div>
+<p>
+    <button id="takeProfilePicture" type="button" autofocus="true">
+        Create Profile Picture
+    </button>
+</p>
+<video id="videoTag" autoplay></video>
+<canvas id="profilePicCanvas" style="display: none"></canvas>
+<div>
+    <img src="" alt="" id="profilePictureOutput">
+</div>
 <script>
   var videoArea = document.querySelector("video");
   var videoSelect = document.querySelector('#camera');
@@ -29,16 +30,51 @@
   var takePicButton = document.querySelector('#takeProfilePicture');
   var videoTag = document.querySelector('#videoTag');
 
+  var width = 240; //Desied width of the profile picture
+  var height = 0; //Calculated later based on image ratio
+  var streaming = false; //Used to determine when the video has loaded
+
+  takePicButton.addEventListener('click', function (ev) {
+    takeProfilePic();
+    ev.PreventDefault();
+  }, false);
+
+  videoTag.addEventListener('canplay', function(ev){
+    if (!streaming) {
+      height = videoTag.videoHeight / (videoTag.videoWidth/width);
+      //Firefox currently has a bug where the height can't be read from
+      //the video, so we will make assumptions if this happens
+      if(isNaN(height)) {
+        height = width / (4/3);
+      }
+      videoTag.setAttribute('width', width);
+      videoTag.setAttribute('height', height);
+      profilePicCanvas.setAttribute('width', width);
+      profilePicCanvas.setAttribute('height', height);
+      streaming = true;
+    }
+  }, false);
+  function takeProfilePic() {
+    var context = profilePicCanvas.getContext('2d');
+    if (width && height) {
+      profilePicCanvas.width = width;
+      profilePicCanvas.height = height;
+      context.drawImage(videoTag, 0, 0, width, height);
+      var data = profilePicCanvas.toDataURL('image/png');
+      profilePictureOutput.setAttribute('src', data);
+    }
+
+  }
 
   //MediaStreamTrack.getSources(getCameras);
-  navigator.mediaDevices.enumerateDevices().then(function(sourceInfos){
-    for(var i = 0; i !== sourceInfos.length; ++i) {
+  navigator.mediaDevices.enumerateDevices().then(function (sourceInfos) {
+    for (var i = 0; i !== sourceInfos.length; ++i) {
       var sourceInfo = sourceInfos[i];
       var option = document.createElement('option');
       option.value = sourceInfo.id;
-      if( sourceInfo.kind === 'videoinput') {
+      if (sourceInfo.kind === 'videoinput') {
         option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
-      //  option.value = sourceInfo.deviceId;
+        //  option.value = sourceInfo.deviceId;
         videoSelect.appendChild(option);
       }
     }
