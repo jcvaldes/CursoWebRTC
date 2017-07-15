@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<div>
+    Video: <select name="camera" id="camera"></select>
+</div>
+<p>
+    <button id="takeProfilePicture" type="button" autofocus="true">
+        Create Profile Picture
+    </button>
+</p>
+<video id="videoTag" autoplay></video>
+<div>
+    <label>Your Name</label>
+    <input id="myName" type="text">
+    <label>Message</label>
+    <input id="myMessage" type="text">
+    <input id="sendMessage" type="submit">
+    <div id="chatArea">Message Output:<br></div>
+</div>
+
+<script>
+  var videoArea = document.querySelector("video");
+  var videoSelect = document.querySelector('#camera');
+  var myName = document.querySelector('#myName');
+  var myMessage = document.querySelector('#myMessage');
+  var sendMessage = document.querySelector('#sendMessage');
+  var chatArea = document.querySelector('#chatArea');
+  var ROOM = "chat";
+
+
+  videoTag.addEventListener('canplay', function (ev) {
+    if (!streaming) {
+      height = videoTag.videoHeight / (videoTag.videoWidth / width);
+      //Firefox currently has a bug where the height can't be read from
+      //the video, so we will make assumptions if this happens
+      if (isNaN(height)) {
+        height = width / (4 / 3);
+      }
+      videoTag.setAttribute('width', width);
+      videoTag.setAttribute('height', height);
+      profilePicCanvas.setAttribute('width', width);
+      profilePicCanvas.setAttribute('height', height);
+      streaming = true;
+    }
+  }, false);
+
+  function takeProfilePic() {
+    var context = profilePicCanvas.getContext('2d');
+    if (width && height) {
+      profilePicCanvas.width = width;
+      profilePicCanvas.height = height;
+      context.drawImage(videoTag, 0, 0, width, height);
+      var data = profilePicCanvas.toDataURL('image/png');
+      profilePictureOutput.setAttribute('src', data);
+    }
+
+  }
+
+  //MediaStreamTrack.getSources(getCameras);
+  navigator.mediaDevices.enumerateDevices().then(function (sourceInfos) {
+    for (var i = 0; i !== sourceInfos.length; ++i) {
+      var sourceInfo = sourceInfos[i];
+      var option = document.createElement('option');
+      option.value = sourceInfo.id;
+      if (sourceInfo.kind === 'videoinput') {
+        option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
+        //  option.value = sourceInfo.deviceId;
+        videoSelect.appendChild(option);
+      }
+    }
+  });
+
+  function startStream() {
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    var videoSource = videoSelect.value;
+    var constraints = {
+      audio: false,
+      video: {
+        mandatory: {
+          minWidth: 240,
+          maxWidth: 240,
+          minHeight: 240,
+          maxHeight: 240
+        },
+        optional: [{
+          sourceId: videoSource
+        }]
+      }
+    };
+
+    navigator.getUserMedia(constraints, onSuccess, onError);
+  }
+
+  function onSuccess(stream) {
+    console.log("Success! We have a stream!");
+    videoArea.src = window.URL.createObjectURL(stream);
+    videoArea.className = "grayscale_filter";
+    videoArea.play();
+  }
+
+  function onError(error) {
+    console.log("Error with getUserMedia: ", error);
+  }
+
+  videoSelect.onchange = startStream;
+  startStream();
+
+  io = io.connect();
+  io.emit('ready', ROOM);
+
+  io.emit('announce', function (data) {
+    displayMessage(data.message);
+  })
+    function displayMessage(message) {
+      chatArea.innerHTML = chatArea.innerHTML + "<br/>" + message;
+    }
+</script>
+</body>
+</html>
